@@ -1,0 +1,32 @@
+.data-uploader {
+    margin-bottom: 20px;
+}
+
+.file-input {
+    display: none;
+}
+
+.upload-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #9d4edd;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    transition: background-color 0.3s;
+    box-sizing: border-box;
+}
+
+.upload-button:hover {
+    background-color: #7b2cbf;
+}
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 14px;
+    margin-top: 10px;
+}

@@ -1,0 +1,15 @@
+.fill-form-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #7b2cbf;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.fill-form-button:hover {
+    background-color: #9d4edd;
+}
