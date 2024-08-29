@@ -1,50 +1,102 @@
-# React + TypeScript + Vite
+# 🚀 Device Form Filler Extension
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Device Form Filler Extension** is a Chrome extension that streamlines the process of filling out forms by automatically populating fields based on device data. This tool is perfect for users who regularly fill out forms with similar data and want to save time.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Upload Device Data**: Upload a JSON file with device information.
+- **Select Device**: Choose from a list of devices to auto-fill forms.
+- **Instant Form Filling**: Automatically fills out form fields based on the selected device.
+- **Sleek UI**: A beautiful, responsive user interface that enhances your workflow.
 
-## Expanding the ESLint configuration
+## 🛠️ Requirements
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+To use this extension, you need to have the following installed:
 
-- Configure the top-level `parserOptions` property like this:
+- **Node.js** (v12 or higher)
+- **npm** (Node Package Manager)
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
+Make sure these are installed on your machine. If not, you can download them from [Node.js official website](https://nodejs.org/).
+
+## 📦 Installation
+
+Follow these steps to set up the extension:
+
+1. **Clone the repository** (or download the source code):
+
+   ```
+   git clone https://github.com/yourusername/device-form-filler-extension.git
+   cd device-form-filler-extension
+   ```
+
+2. **Install dependencies**:
+
+   ```
+   npm install
+   ```
+
+3. **Build the extension**:
+
+   ```
+   npm run build
+   ```
+
+## 🚀 Load Extension in Chrome
+
+1. **Open Chrome** and navigate to \`chrome://extensions/\`.
+2. **Enable Developer Mode** by toggling the switch at the top right.
+3. **Click on "Load unpacked"**.
+4. **Select the \`dist\` folder** inside your project directory. This will load the extension into Chrome.
+
+## 🎮 Usage
+
+1. **Open the extension** by clicking on the extension icon in the Chrome toolbar.
+2. **Upload Device Data**: Click the "Upload Data" button and upload your JSON file containing the device information.
+3. **Select a Device** from the dropdown menu.
+4. **Click "Fill the Form!"** and watch as the form fields are automatically populated with your selected device's data.
+
+## 📝 JSON File Format
+
+The JSON file should contain an array of devices, where each device has the following structure:
+
+```
+[
+  {
+    "model_title": "Device 1",
+    "model_name": "Model 1",
+    "launch_price": "1000",
+    "release_date": "2023-01-01",
+    "brand_name": "Brand 1",
+    "colors_available": [
+      { "label": "Red" },
+      { "label": "Blue" }
+    ]
   },
-})
+  ...
+]
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## ⚙️ Development
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+If you want to modify the extension:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+1. **Make your changes** in the source files.
+2. **Rebuild the project**:
+
+   ```
+   npm run build
+   ```
+
+3. **Reload the extension** in Chrome to see your changes.
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to fork this project and submit pull requests.
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+Enjoy a faster, more efficient way to fill out your forms with the **Device Form Filler Extension**! 🚀
