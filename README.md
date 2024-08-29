@@ -26,7 +26,7 @@ Follow these steps to set up the extension:
 
    ```
    git clone https://github.com/Umairabid1612/techfiller.git
-   cd device-form-filler-extension
+   cd techfiller
    ```
 
 2. **Install dependencies**:
