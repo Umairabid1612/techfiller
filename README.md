@@ -1,4 +1,4 @@
-# 🚀 Device Form Filler Extension
+# 🚀  Tech Filler Extension
 
 **Device Form Filler Extension** is a Chrome extension that streamlines the process of filling out forms by automatically populating fields based on device data. This tool is perfect for users who regularly fill out forms with similar data and want to save time.
 
@@ -25,7 +25,7 @@ Follow these steps to set up the extension:
 1. **Clone the repository** (or download the source code):
 
    ```
-   git clone https://github.com/yourusername/device-form-filler-extension.git
+   git clone https://github.com/Umairabid1612/techfiller.git
    cd device-form-filler-extension
    ```
 
