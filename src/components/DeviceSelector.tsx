@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './DeviceSelector.css';
+import Fuse from 'fuse.js';
 
 interface DeviceSelectorProps {
     devices: string[];
@@ -9,7 +10,13 @@ interface DeviceSelectorProps {
 
 const DeviceSelector: React.FC<DeviceSelectorProps> = ({ devices, selectedDeviceIndex, onSelectDevice }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const fuse = new Fuse(devices.map(device => ({ title: device })), {
+        keys: ['title'], // Use only the title as the key
+        threshold: 0.3,  // Adjust this for more or less fuzzy results
+    });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -29,9 +36,14 @@ const DeviceSelector: React.FC<DeviceSelectorProps> = ({ devices, selectedDevice
     const handleSelect = (index: number) => {
         onSelectDevice(index);
         setIsOpen(false);
+        setSearchTerm(''); // Clear search after selection
     };
 
-    const visibleDevices = devices; // Limit to 5 visible items
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
+    };
+
+    const filteredDevices = searchTerm ? fuse.search(searchTerm).map(result => result.item.title) : devices;
 
     return (
         <div className="custom-dropdown" ref={dropdownRef}>
@@ -40,18 +52,22 @@ const DeviceSelector: React.FC<DeviceSelectorProps> = ({ devices, selectedDevice
                 <span className={`arrow ${isOpen ? 'up' : 'down'}`}></span>
             </div>
             {isOpen && (
-                <ul className="dropdown-list">
-                    {visibleDevices.map((device, index) => (
-                        <li key={index} onClick={() => handleSelect(index)}>
-                            {device}
-                        </li>
-                    ))}
-                    {devices.length > 5 && (
-                        <li onClick={() => setIsOpen(false)}>
-                            ... {devices.length - 5} more items
-                        </li>
-                    )}
-                </ul>
+                <div className="dropdown-list">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        placeholder="Search device..."
+                        className="dropdown-search"
+                    />
+                    <ul>
+                        {filteredDevices.map((device, index) => (
+                            <li key={index} onClick={() => handleSelect(devices.indexOf(device))}>
+                                {device}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             )}
         </div>
     );
