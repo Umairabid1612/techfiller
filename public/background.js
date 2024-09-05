@@ -55,15 +55,155 @@ function fillFormWithData(deviceData, currentUrl) {
     }
 
     function fillInputField(selector, value) {
-        waitForElement(`#${selector}`).then(inputElement => {
-            inputElement.focus();
-            inputElement.value = value;
-            inputElement.dispatchEvent(new Event('input', { bubbles: true }));
-            inputElement.dispatchEvent(new Event('change', { bubbles: true }));
-        }).catch(console.error);
+        const inputElement = document.getElementById(selector)
+        inputElement.focus();
+        inputElement.value = value;
+        inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+        inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+
     }
 
+    // Helper function to find the button by its class and text content
+    // Helper function to find the button by its class and text content within the modal
+    // function findModalButtonInModal(modalSelector, buttonText) {
+    //     const modal = document.querySelector(modalSelector);
+    //     if (!modal) {
+    //         console.error("Modal not found.");
+    //         return null;
+    //     }
+
+    //     const buttons = modal.querySelectorAll('.btn-primary'); // Select all buttons with class 'btn-primary' within the modal
+    //     for (let button of buttons) {
+    //         if (button.textContent.includes(buttonText)) {
+    //             return button;
+    //         }
+    //     }
+    //     return null;
+    // }
+
+    async function handleAddValueSequentially(missingValues, selector) {
+        console.log(`Handling Add Value workflow for missing values:`, missingValues);
+
+        // Get the list of all divs containing the 'dropdown-no-option-action' class
+        const addValueButtons = document.querySelectorAll('.dropdown-no-option-action');
+
+        if (addValueButtons.length === 0) {
+            console.error("No 'Add Value' buttons found on the page.");
+            return;
+        }
+
+        for (let index = 0; index < missingValues.length; index++) {
+            const value = missingValues[index];
+
+            // Ensure we're targeting the correct div button based on index
+            if (addValueButtons && addValueButtons.length > index) {
+                const addValueButton = addValueButtons[index];
+                console.log(`Add Value button detected for value: ${value}. Clicking...`);
+
+                // Click the "Add Value" button to trigger the modal
+                addValueButton.click();
+                console.log(`Clicked 'Add Value' button for value: ${value}`);
+
+                try {
+                    // Wait for the modal to fully load
+                    const modal = await waitForElement('.modal.show');
+                    console.log("Modal detected. Waiting for modal elements...");
+
+                    // Wait for the price input field inside the modal
+                    const modalInput = await waitForElement('#price');
+                    console.log("Price input detected. Filling the form...");
+
+                    // **Ensure the input field is correctly focused and filled**
+                    modalInput.focus();
+                    modalInput.value = value;
+
+                    // Fire the input and change events to make sure the form captures the change
+                    modalInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    modalInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+                    // Wait for the events to properly register
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Automatically check relevant checkboxes based on form type
+                    const isMobileForm = window.location.href.includes('/mobiles/add');
+                    const isLaptopForm = window.location.href.includes('/laptops/add');
+                    const isTabletForm = window.location.href.includes('/tablets/add');
+
+                    // Checkboxes based on form type
+                    if (isMobileForm) {
+                        document.querySelector('input[name="is_mobile"]').checked = true;
+                        document.querySelector('input[name="is_tab"]').checked = true;
+                        console.log('Mobile form: Checked mobile and tab checkboxes.');
+                    } else if (isLaptopForm) {
+                        document.querySelector('input[name="is_laptop"]').checked = true;
+                        document.querySelector('input[name="is_desktop"]').checked = true;
+                        console.log('Laptop form: Checked laptop and desktop checkboxes.');
+                    } else if (isTabletForm) {
+                        document.querySelector('input[name="is_tab"]').checked = true;
+                        console.log('Tablet form: Checked tab checkbox.');
+                    }
+
+                    // **Wait before clicking the save button**
+                    await new Promise(resolve => setTimeout(resolve, 500));  // Adjust this delay as needed
+
+                    // Find and click the correct "Save" button inside the modal
+                    const saveButton = modal.querySelector('.btn-primary');
+                    if (saveButton) {
+                        console.log(`Clicking the save button in the modal for value: ${value}`);
+                        saveButton.click();
+                    } else {
+                        console.error("Save button not found in the modal.");
+                    }
+
+                    // **Wait for the modal to disappear after submission**
+                    await waitForModalToClose(modal);
+
+                } catch (error) {
+                    console.error("Error handling modal interaction:", error);
+                }
+            } else {
+                console.error(`Add Value button not found for index: ${index}`);
+            }
+        }
+    }
+
+    function waitForModalToClose(modal) {
+        return new Promise((resolve, reject) => {
+            const interval = setInterval(() => {
+                if (!document.body.contains(modal)) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 100); // Check every 100ms
+
+            setTimeout(() => {
+                clearInterval(interval);
+                reject(new Error('Modal did not close in time.'));
+            }, 5000); // Timeout after 5 seconds
+        });
+    }
+
+    function waitForElement(selector) {
+        return new Promise((resolve, reject) => {
+            const interval = setInterval(() => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    clearInterval(interval);
+                    resolve(element);
+                }
+            }, 100); // Check every 100ms
+
+            setTimeout(() => {
+                clearInterval(interval);
+                reject(new Error(`Element with selector "${selector}" not found`));
+            }, 5000); // Timeout after 5 seconds
+        });
+    }
+
+    // Updated fillReactSelectField to handle missing options and multiple values
     function fillReactSelectField(selector, values, optionPrefix, isMulti = false) {
+        console.log(`Filling React Select Field: ${selector} with values: ${values}`);
+
         waitForElement(selector).then(inputElement => {
             inputElement.focus();
             inputElement.click();
@@ -72,22 +212,44 @@ function fillFormWithData(deviceData, currentUrl) {
                 values = [values];
             }
 
-            values.forEach((value, index) => {
+            const missingValues = [];
+
+            // Use Promise.all to handle all value processing
+            const valuePromises = values.map((value, index) => {
                 inputElement.value = value;
                 inputElement.dispatchEvent(new InputEvent('input', { bubbles: true }));
                 inputElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
 
                 const optionSelector = `[id^='${optionPrefix}-${index}']`;
 
-                waitForElement(optionSelector).then((dropdownOption) => {
-                    dropdownOption.click();  // Select the option
-                    if (isMulti && index < values.length - 1) {
-                        inputElement.focus();  // Re-focus for multi-select
-                    }
-                }).catch(console.error);
+                return waitForElement(optionSelector)
+                    .then((dropdownOption) => {
+                        console.log(`Selecting option for value: ${value}`);
+                        dropdownOption.click();  // Select the option
+                        if (isMulti && index < values.length - 1) {
+                            inputElement.focus();  // Re-focus for multi-select
+                        }
+                    })
+                    .catch(() => {
+                        console.log(`Option not found for value: ${value}, triggering Add Value flow.`);
+                        missingValues.push(value);  // Collect missing values
+                    });
+            });
+
+            // Ensure all values are processed before moving to the next step
+            Promise.all(valuePromises).then(() => {
+                if (missingValues.length > 0) {
+                    console.log("Triggering 'Add Value' workflow for missing values:", missingValues);
+                    handleAddValueSequentially(missingValues, selector);  // Start handling missing values
+                }
             });
         }).catch(console.error);
     }
+
+
+
+
+
     function fillSelectField(selector, value) {
         if (value === 1) {
             const selectElement = document.querySelector(selector);
