@@ -37,22 +37,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function fillFormWithData(deviceData, currentUrl) {
     console.log("Executing form fill script with data:", deviceData, "on URL:", currentUrl);
 
-    function waitForElement(selector) {
-        return new Promise((resolve, reject) => {
-            const interval = setInterval(() => {
-                const element = document.querySelector(selector);
-                if (element) {
-                    clearInterval(interval);
-                    resolve(element);
-                }
-            }, 100); // Check every 100ms
+    // function waitForElement(selector) {
+    //     return new Promise((resolve, reject) => {
+    //         const interval = setInterval(() => {
+    //             const element = document.querySelector(selector);
+    //             if (element) {
+    //                 clearInterval(interval);
 
-            setTimeout(() => {
-                clearInterval(interval);
-                reject(new Error(`Element with selector "${selector}" not found`));
-            }, 5000); // Timeout after 5 seconds
-        });
-    }
+    //                 resolve(element);
+    //             }
+    //         }, 100); // Check every 100ms
+
+    //         setTimeout(() => {
+    //             clearInterval(interval);
+    //             reject(new Error(`Element with selector "${selector}" not found`));
+    //         }, 5000); // Timeout after 5 seconds
+    //     });
+    // }
 
     function fillInputField(selector, value) {
         const inputElement = document.getElementById(selector)
@@ -92,6 +93,7 @@ function fillFormWithData(deviceData, currentUrl) {
             return;
         }
 
+        // Process each value one by one
         for (let index = 0; index < missingValues.length; index++) {
             const value = missingValues[index];
 
@@ -105,13 +107,30 @@ function fillFormWithData(deviceData, currentUrl) {
                 console.log(`Clicked 'Add Value' button for value: ${value}`);
 
                 try {
-                    // Wait for the modal to fully load
-                    const modal = await waitForElement('.modal.show');
+                    // Wait for a longer delay to ensure the modal fully loads
+                    await new Promise(resolve => setTimeout(resolve, 2000));  // Increased delay to 3 seconds
+
+                    // Access the modal and ensure it's fully visible
+                    const modal = document.querySelector('.modal.show');
+                    if (!modal) {
+                        console.error("Modal not found!");
+                        continue;
+                    }
                     console.log("Modal detected. Waiting for modal elements...");
 
-                    // Wait for the price input field inside the modal
-                    const modalInput = await waitForElement('#price');
+                    // Add a 2 second delay to allow modal elements to fully load
+                    await new Promise(resolve => setTimeout(resolve, 1000));  // 2 second delay for modal elements
+
+                    // Access the price input field inside the modal
+                    const modalInput = document.querySelector('#price');
+                    if (!modalInput) {
+                        console.error("Price input not found!");
+                        continue;
+                    }
                     console.log("Price input detected. Filling the form...");
+
+                    // Add a slight delay before interacting with the input field
+                    await new Promise(resolve => setTimeout(resolve, 1000));  // 1 second delay for input field to be ready
 
                     // **Ensure the input field is correctly focused and filled**
                     modalInput.focus();
@@ -121,9 +140,6 @@ function fillFormWithData(deviceData, currentUrl) {
                     modalInput.dispatchEvent(new Event('input', { bubbles: true }));
                     modalInput.dispatchEvent(new Event('change', { bubbles: true }));
 
-                    // Wait for the events to properly register
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
                     // Automatically check relevant checkboxes based on form type
                     const isMobileForm = window.location.href.includes('/mobiles/add');
                     const isLaptopForm = window.location.href.includes('/laptops/add');
@@ -131,32 +147,47 @@ function fillFormWithData(deviceData, currentUrl) {
 
                     // Checkboxes based on form type
                     if (isMobileForm) {
-                        document.querySelector('input[name="is_mobile"]').checked = true;
-                        document.querySelector('input[name="is_tab"]').checked = true;
+                        document.querySelector('input[name="is_mobile"]').click()
+                        document.querySelector('input[name="is_tab"]').click()
                         console.log('Mobile form: Checked mobile and tab checkboxes.');
                     } else if (isLaptopForm) {
-                        document.querySelector('input[name="is_laptop"]').checked = true;
-                        document.querySelector('input[name="is_desktop"]').checked = true;
+                        document.querySelector('input[name="is_laptop"]').click()
+                        document.querySelector('input[name="is_desktop"]').click()
                         console.log('Laptop form: Checked laptop and desktop checkboxes.');
                     } else if (isTabletForm) {
-                        document.querySelector('input[name="is_tab"]').checked = true;
+                        document.querySelector('input[name="is_tab"]').click()
                         console.log('Tablet form: Checked tab checkbox.');
                     }
 
                     // **Wait before clicking the save button**
-                    await new Promise(resolve => setTimeout(resolve, 500));  // Adjust this delay as needed
+                    // Add a longer delay before interacting with the save button
+                    await new Promise(resolve => setTimeout(resolve, 3000));  // Increased delay to 5 seconds
 
                     // Find and click the correct "Save" button inside the modal
                     const saveButton = modal.querySelector('.btn-primary');
                     if (saveButton) {
                         console.log(`Clicking the save button in the modal for value: ${value}`);
+                        console.log("Save Button is About to be pressed!", saveButton)
+                        await new Promise(resolve => setTimeout(resolve, 3000));
                         saveButton.click();
+
+                        console.log("Save button clicked");
                     } else {
                         console.error("Save button not found in the modal.");
                     }
 
-                    // **Wait for the modal to disappear after submission**
-                    await waitForModalToClose(modal);
+                    // Add a significant delay to simulate waiting for the modal to close and backend processing
+                    console.log("Waiting for backend processing and modal to close...");
+
+                    // Check if the modal is closed properly
+                    if (document.querySelector('.modal.show')) {
+                        console.log("Modal is still open, waiting for it to close...");
+                        // await new Promise(resolve => setTimeout(resolve, 3000));  // Extra 3 seconds delay if modal is still open
+                    } else {
+                        console.log("Modal closed successfully.");
+                    }
+
+                    console.log(`Modal closed for value: ${value}. Moving to the next value...`);
 
                 } catch (error) {
                     console.error("Error handling modal interaction:", error);
@@ -166,6 +197,10 @@ function fillFormWithData(deviceData, currentUrl) {
             }
         }
     }
+
+
+
+
 
     function waitForModalToClose(modal) {
         return new Promise((resolve, reject) => {
@@ -183,6 +218,7 @@ function fillFormWithData(deviceData, currentUrl) {
         });
     }
 
+
     function waitForElement(selector) {
         return new Promise((resolve, reject) => {
             const interval = setInterval(() => {
@@ -199,6 +235,7 @@ function fillFormWithData(deviceData, currentUrl) {
             }, 5000); // Timeout after 5 seconds
         });
     }
+
 
     // Updated fillReactSelectField to handle missing options and multiple values
     function fillReactSelectField(selector, values, optionPrefix, isMulti = false) {
